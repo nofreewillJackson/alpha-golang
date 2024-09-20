@@ -100,9 +100,9 @@ func handleSynthesizeCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 // generateSynthesis creates a relationship counselor-style synthesis of the recent messages between two people
 func generateSynthesis() {
-	// Fetch unsynthesized messages from the database
+	// Fetch unsynthesized messages from the specific synthesize channel in the database
 	rows, err := dbpool.Query(context.Background(),
-		`SELECT id, content, author_id FROM messages WHERE synthesized = false AND timestamp >= NOW() - INTERVAL '24 HOURS'`)
+		`SELECT id, content, author_id FROM messages WHERE synthesized = false AND channel_id = $1 AND timestamp >= NOW() - INTERVAL '24 HOURS'`, synthesizeChannelID)
 	if err != nil {
 		log.Printf("Error fetching messages: %v\n", err)
 		return
