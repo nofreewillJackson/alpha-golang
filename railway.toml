@@ -1,4 +1,4 @@
 [services.bot]
 path = "alpha-golang/bot"
-build = "go build -o bot"
-start = "./bot"
+build = "cd alpha-golang/bot && go build -o bot"
+start = "./alpha-golang/bot/bot"
