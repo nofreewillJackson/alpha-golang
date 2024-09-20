@@ -1,3 +1,4 @@
+// bot/database.go
 package main
 
 import (
@@ -27,3 +28,4 @@ func initDatabase() {
 	}
 
 	log.Println("Connected to the database successfully!")
+}
