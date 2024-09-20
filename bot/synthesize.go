@@ -153,19 +153,11 @@ func generateSynthesis() {
 		return
 	}
 
-	// Store the synthesis
+	// Store the synthesis in the messages table and mark as synthesized
 	_, err = dbpool.Exec(context.Background(),
-		`INSERT INTO syntheses (synthesis) VALUES ($1)`, synthesis)
+		`UPDATE messages SET synthesis = $1, synthesized = true WHERE id = ANY($2)`, synthesis, messageIDs)
 	if err != nil {
-		log.Printf("Error inserting synthesis: %v\n", err)
-		return
-	}
-
-	// Mark the messages as synthesized
-	_, err = dbpool.Exec(context.Background(),
-		`UPDATE messages SET synthesized = true WHERE id = ANY($1)`, messageIDs)
-	if err != nil {
-		log.Printf("Error updating messages as synthesized: %v\n", err)
+		log.Printf("Error updating messages with synthesis: %v\n", err)
 	}
 
 	// Send the synthesis to the specified channel
