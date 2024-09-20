@@ -3,6 +3,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/bwmarrin/discordgo"
+	"log"
 	"os"
 
 	openai "github.com/sashabaranov/go-openai"
@@ -41,4 +44,53 @@ func summarizeContent(content string) (string, error) {
 
 	// Return the generated reminder-friendly summary
 	return resp.Choices[0].Message.Content, nil
+}
+
+// personalizeContent replaces author IDs with names and fetches usernames for others
+func personalizeContent(content, authorID string) string {
+	// Replace known author IDs with personalized names
+	switch authorID {
+	case "869008800110243850":
+		return "Hannah: " + content
+	case "1123769580733603930":
+		return "Jackson: " + content
+	default:
+		// Fetch the username from Discord for any other author ID
+		username := fetchUsernameFromDiscord(authorID)
+		return username + ": " + content
+	}
+}
+
+// fetchUsernameFromDiscord fetches the Discord username given an author ID
+func fetchUsernameFromDiscord(authorID string) string {
+	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
+	if err != nil {
+		log.Printf("Error creating Discord session: %v\n", err)
+		return "Unknown User"
+	}
+	defer session.Close()
+
+	user, err := session.User(authorID)
+	if err != nil {
+		log.Printf("Error fetching user %s: %v\n", authorID, err)
+		return "Unknown User"
+	}
+
+	return user.Username
+}
+
+// sendMessageToChannel sends a message to the specified channel using Discord session
+func sendMessageToChannel(channelID, message string) error {
+	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
+	if err != nil {
+		return fmt.Errorf("error creating Discord session: %w", err)
+	}
+	defer session.Close()
+
+	_, err = session.ChannelMessageSend(channelID, message)
+	if err != nil {
+		return fmt.Errorf("error sending message to channel %s: %w", channelID, err)
+	}
+
+	return nil
 }

@@ -27,6 +27,18 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	// Handle command: /synthesizenow
+	if strings.HasPrefix(m.Content, "/synthesizenow") {
+		go handleSynthesizeNowCommand(s, m)
+		return
+	}
+
+	// Handle command: /synthesize
+	if strings.HasPrefix(m.Content, "/synthesize") {
+		go handleSynthesizeCommand(s, m)
+		return
+	}
+
 	// Handle command: /digest
 	if strings.HasPrefix(m.Content, "/digest") {
 		go handleDigestCommand(s, m)

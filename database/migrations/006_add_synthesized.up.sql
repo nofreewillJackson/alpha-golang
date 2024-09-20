@@ -1,0 +1,2 @@
+-- 006
+ALTER TABLE messages ADD COLUMN synthesized BOOLEAN DEFAULT FALSE;
