@@ -59,7 +59,7 @@ func handleSynthesizeNowCommand(s *discordgo.Session, m *discordgo.MessageCreate
 func synthesizeMessagesAsCouplesCounselor(content, sender, recipient string) (string, error) {
 	// Construct a prompt to simulate a couples' counselor providing insights
 	prompt := fmt.Sprintf(
-		"You are a couples' counselor. Your job is to digest the following messages and help %s communicate better with %s. Fit yourself in %s's shoes, make their grievances and perspective coherent and understandable to %s. Provide empathetic and compassionate feedback to help resolve their concerns.\n\n%s",
+		"You are a couples' counselor. Your job is to digest the following messages and help %s communicate better with %s. Fit yourself in %s's shoes(but you MUST BE IN THIRD PERSON), make their grievances and perspective coherent and understandable to %s. Provide empathetic and compassionate feedback to help resolve their concerns.\n\n%s",
 		sender, recipient, sender, recipient, content,
 	)
 

@@ -24,7 +24,7 @@ func handleSummarizeCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 // summarizeContent generates a reminder-focused summary of the provided content
 func summarizeContent(content string) (string, error) {
 	// Construct a reminder-focused prompt to generate accessible summaries
-	prompt := "You are a friendly assistant helping someone with Alzheimer's. Please create a gentle, easy-to-understand reminder based on the following information:\n\n" + content
+	prompt := "You are a friendly assistant helping someone with Alzheimer's(but you MUST BE IN THIRD PERSON). Please create a gentle, easy-to-understand reminder based on the following information:\n\n" + content
 
 	resp, err := openaiClient.CreateChatCompletion(
 		context.Background(),
