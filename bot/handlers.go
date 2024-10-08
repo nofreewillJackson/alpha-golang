@@ -16,6 +16,30 @@ import (
 const summarizeChannelID = "1279549793286225930" // Channel ID where summaries will be sent
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	// Handle /locate command
+	if strings.HasPrefix(m.Content, "/locate ") {
+		go handleLocate(s, m)
+		return
+	}
+
+	// Handle /location command
+	if strings.HasPrefix(m.Content, "/location ") {
+		go handleLocation(s, m)
+		return
+	}
+
+	// Handle /remind command
+	if strings.HasPrefix(m.Content, "/remind") {
+		go handleRemindCommand(s, m)
+		return
+	}
+
+	if strings.HasPrefix(m.Content, "/log") {
+		go handleRemindCommand(s, m)
+		return
+	}
+
 	// Ignore messages from the bot itself
 	if m.Author.ID == s.State.User.ID {
 		return
