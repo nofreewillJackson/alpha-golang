@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -91,10 +92,9 @@ func displayReminders(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	s.ChannelMessageSend(m.ChannelID, response)
 }
-
 func handleDeleteReminder(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ensure the message starts with "delete " and extract the number after it
-	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remind delete "))
+	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remindme delete "))
 
 	// Convert the string to an integer (the reminder number to delete)
 	id, err := strconv.Atoi(content)
@@ -160,4 +160,49 @@ func handleLaterReminder(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Confirmation: Reminder %d has been postponed to tomorrow.", id))
+}
+
+func sendHourlyReminders(dg *discordgo.Session) {
+	var reminders []string
+	var authorIDs []string
+
+	rows, err := dbpool.Query(context.Background(),
+		`SELECT description, author_id FROM reminders`)
+	if err != nil {
+		log.Printf("Error fetching reminders: %v\n", err)
+		return
+	}
+	defer rows.Close()
+
+	// Collect all reminders and author IDs
+	for rows.Next() {
+		var description, authorID string
+		if err := rows.Scan(&description, &authorID); err != nil {
+			log.Printf("Error scanning reminder: %v\n", err)
+			continue
+		}
+		reminders = append(reminders, description)
+		authorIDs = append(authorIDs, authorID)
+	}
+
+	// If there are no reminders, return early
+	if len(reminders) == 0 {
+		log.Println("No reminders to send.")
+		return
+	}
+
+	// Prepare the message
+	response := "@everyone Here are the current reminders:\n"
+	for i, reminder := range reminders {
+		response += fmt.Sprintf("%d. %s (by user %s)\n", i+1, reminder, authorIDs[i])
+	}
+
+	// Send to a specific channel (replace with your channel ID)
+	channelID := os.Getenv("1293690503489126433") // Make sure to set this in your environment
+	_, err = dg.ChannelMessageSend(channelID, response)
+	if err != nil {
+		log.Printf("Error sending reminder message: %v\n", err)
+	} else {
+		log.Println("Hourly reminders sent.")
+	}
 }

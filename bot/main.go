@@ -14,18 +14,13 @@ import (
 
 func main() {
 	// Load environment variables from .env file
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Println("No .env file found, relying on environment variables")
-	//} else {
-	//	log.Println(".env file loaded successfully")
-	//}
 	err := godotenv.Overload() // Overload the .env if in system file
 	if err != nil {
 		log.Printf("Error overloading .env file: %v", err)
 	} else {
 		log.Println(".env file loaded and variables overwritten")
 	}
+
 	// Initialize database connection
 	initDatabase()
 	defer dbpool.Close()
@@ -55,12 +50,21 @@ func main() {
 		log.Fatalf("Error opening Discord session: %v", err)
 	}
 
-	// Schedule daily digest generation
+	// Initialize the cron scheduler
 	c := cron.New()
+
+	// Schedule hourly reminder ping
+	c.AddFunc("@hourly", func() {
+		sendHourlyReminders(dg)
+	})
+
+	// Schedule daily digest generation
 	_, err = c.AddFunc("@daily", generateDailyDigest)
 	if err != nil {
 		log.Fatalf("Error scheduling daily digest: %v", err)
 	}
+
+	// Start the cron jobs
 	c.Start()
 	defer c.Stop()
 
