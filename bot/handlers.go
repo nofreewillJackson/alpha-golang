@@ -36,7 +36,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Handle /remind command
-	if strings.HasPrefix(m.Content, "/remind") {
+	if strings.HasPrefix(m.Content, "/remindme") {
 		go handleRemindCommand(s, m)
 		return
 	}

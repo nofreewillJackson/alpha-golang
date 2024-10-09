@@ -16,8 +16,8 @@ func handleRemindCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/reminders"))
-	if content == "" {
+	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remindeme"))
+	if content == "show" {
 		displayReminders(s, m)
 		return
 	}
