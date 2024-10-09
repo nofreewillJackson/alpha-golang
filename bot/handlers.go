@@ -36,7 +36,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, "/log") {
-		go handleRemindCommand(s, m)
+		go handleLogCommand(s, m)
 		return
 	}
 
