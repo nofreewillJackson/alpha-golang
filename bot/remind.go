@@ -16,7 +16,7 @@ func handleRemindCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remind"))
+	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/reminders"))
 	if content == "" {
 		displayReminders(s, m)
 		return
@@ -29,6 +29,11 @@ func handleRemindCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if strings.HasPrefix(content, "later ") {
 		handleLaterReminder(s, m)
+		return
+	}
+
+	if strings.HasPrefix(content, "clearall") {
+		handleClearAllReminders(s, m)
 		return
 	}
 
@@ -83,15 +88,18 @@ func displayReminders(s *discordgo.Session, m *discordgo.MessageCreate) {
 	s.ChannelMessageSend(m.ChannelID, response)
 }
 
-// Handle 'delete' command
 func handleDeleteReminder(s *discordgo.Session, m *discordgo.MessageCreate) {
-	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "delete "))
+	// Ensure the message starts with "delete " and extract the number after it
+	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remind delete "))
+
+	// Convert the string to an integer (the reminder number to delete)
 	id, err := strconv.Atoi(content)
-	if err != nil {
+	if err != nil || id <= 0 {
 		s.ChannelMessageSend(m.ChannelID, "Please provide a valid reminder number to delete.")
 		return
 	}
 
+	// Execute the delete operation and check if a row was affected
 	result, err := dbpool.Exec(context.Background(),
 		`DELETE FROM reminders WHERE id = $1 AND author_id = $2`, id, m.Author.ID)
 	if err != nil {
@@ -100,13 +108,33 @@ func handleDeleteReminder(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	rowsAffected := result.RowsAffected() // FIX: Removed the second assignment
-	if rowsAffected == 0 {
+	// Check if any rows were affected
+	if result.RowsAffected() == 0 {
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("No reminder found with number %d.", id))
 		return
 	}
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Confirmation: Reminder %d has been deleted.", id))
+}
+
+// handleClearAllReminders deletes all reminders for the user or all reminders in the system
+func handleClearAllReminders(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Clear only the user's reminders (optional, you can modify this to clear all reminders if desired)
+	result, err := dbpool.Exec(context.Background(),
+		`DELETE FROM reminders WHERE author_id = $1`, m.Author.ID)
+	if err != nil {
+		log.Printf("Error clearing reminders: %v\n", err)
+		s.ChannelMessageSend(m.ChannelID, "Error clearing reminders.")
+		return
+	}
+
+	// Check if any rows were affected (i.e., reminders were deleted)
+	if result.RowsAffected() == 0 {
+		s.ChannelMessageSend(m.ChannelID, "No reminders found to clear.")
+		return
+	}
+
+	s.ChannelMessageSend(m.ChannelID, "All your reminders have been cleared.")
 }
 
 // Handle 'later' command
