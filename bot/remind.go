@@ -16,29 +16,33 @@ func handleRemindCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remindeme"))
+	// Trim the content after the `/remindme` command
+	content := strings.TrimSpace(strings.TrimPrefix(m.Content, "/remindme"))
+
+	// If the content is "show", display the reminders
 	if content == "show" {
 		displayReminders(s, m)
 		return
 	}
 
+	// If the content is "clearall", delete all reminders
+	if content == "clearall" {
+		handleClearAllReminders(s, m)
+		return
+	}
+
+	// If content is "delete ", handle deletion
 	if strings.HasPrefix(content, "delete ") {
 		handleDeleteReminder(s, m)
 		return
 	}
 
-	if strings.HasPrefix(content, "later ") {
-		handleLaterReminder(s, m)
-		return
+	// If the command is /remindme <text>, treat everything after /remindme as a reminder description
+	if content != "" {
+		addReminder(s, m, content)
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "Please provide a reminder description.")
 	}
-
-	if strings.HasPrefix(content, "clearall") {
-		handleClearAllReminders(s, m)
-		return
-	}
-
-	// Otherwise, add a new reminder
-	addReminder(s, m, content)
 }
 
 // Add a new reminder
